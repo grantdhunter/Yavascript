@@ -1,23 +1,38 @@
-function SmartObject() {
+function SmartObject() {}
 
-}
+SmartObject.prototype.call = function () {
+    var method = arguments[0];
+    var args = Array.prototype.slice.call(arguments, 1);
 
-SmartObject.prototype.addMethod = function(method) {
-    if (this.hasOwnProperty(method)) {
-        return true;
+    if (!this.hasOwnProperty(method)) {
+        var argFunc = this.generateFunction(args.length);
+        this[method] = Function.apply(this, argFunc);
     }
 
-    this.prototype[method] = this.generateFunction()
+    return this[method].apply(this, args);
 }
 
 
-SmartObject.prototype.generateFunction = function() {
-    var func = new (Function.prototype.bind.apply(this, arguments));
+SmartObject.prototype.generateFunction = function (argLength) {
+    var vars = [];
+    var funcArray = []
 
-    return function () {
-
-        return func(arguments);
+    for (var i = 0; i < argLength; i++) {
+        vars.push('x' + i);
     }
+    funcArray = funcArray.concat(vars);
+
+    if (argLength === 0) {
+        funcArray.push('console.log("hi there!")')
+    }
+    if (argLength === 1) {
+        funcArray.push('console.log(' + vars[0] + ')')
+    }
+    if (argLength > 1) {
+        funcArray.push('return ' + vars.join('+'))
+    }
+
+    return funcArray;
 }
 
 
